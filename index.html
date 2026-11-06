@@ -1,1 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚽ Jogo de Futebol - RPG de Carreira</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            background-color: #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .story-box {
+            background-color: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 120px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 1.05rem;
+        }
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        button {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: left;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0284c7;
+            transform: translateY(-1px);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: white;
+            box-sizing: border-box;
+        }
+        .highlight {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
+<div class="game-container">
+    <h1>⚽ Meu Jogo de Futebol</h1>
+    
+    <div id="stats-panel" class="stats-panel" style="display: none;">
+        <div class="stat-item"><span>Jogador:</span> <strong id(name-display) id="p-name">-</strong></div>
+        <div class="stat-item"><span>Posição:</span> <strong id="p-pos">-</strong></div>
+        <div class="stat-item"><span>Clube:</span> <strong id="p-clube">-</strong></div>
+        <div class="stat-item"><span>Atributo Principal:</span> <strong id="p-attr">50</strong></div>
+        <div class="stat-item"><span>Reputação Técnico:</span> <strong id="p-tec">50</strong></div>
+        <div class="stat-item"><span>Torcida:</span> <strong id="p-torcida">50</strong></div>
+    </div>
+
+    <div id="story-box" class="story-box">
+        Carregando jogo...
+    </div>
+
+    <div id="choices-container" class="choices-container">
+        <!-- Botões gerados dinamicamente via JavaScript -->
+    </div>
+</div>
+
+<script>
+    let player = {
+        name: "",
+        position: "",
+        clube: "",
+        atributo: 50,
+        tecnico: 50,
+        torcida: 50
+    };
+
+    let currentStep = "criar_nome";
+
+    const storyBox = document.getElementById("story-box");
+    const choicesContainer = document.getElementById("choices-container");
+    const statsPanel = document.getElementById("stats-panel");
+
+    function updateStats() {
+        document.getElementById("p-name").innerText = player.name;
+        document.getElementById("p-pos").innerText = player.position;
+        document.getElementById("p-clube").innerText = player.clube;
+        document.getElementById("p-attr").innerText = player.atributo;
+        document.getElementById("p-tec").innerText = player.tecnico;
+        document.getElementById("p-torcida").innerText = player.torcida;
+    }
+
+    function renderGame() {
+        choicesContainer.innerHTML = "";
+
+        if (currentStep === "criar_nome") {
+            statsPanel.style.display = "none";
+            storyBox.innerHTML = "Bem-vindo ao <strong>Gestão & Glória: O Jogo de Futebol</strong>! Para começarmos a sua jornada rumo aoestrelato, qual é o seu nome completo ou apelido de craque?";
+            
+            choicesContainer.innerHTML = `
+                <input type="text" id="input-nome" placeholder="Digite seu nome aqui...">
+                <button onclick="salvarNome()">Continuar</button>
+            `;
+        } 
+        else if (currentStep === "criar_posicao") {
+            storyBox.innerHTML = `Prazer em conhecê-lo, <span class="highlight">${player.name}</span>! Em qual posição você atua nos gramados?`;
+            
+            const posicoes = ["Atacante", "Meio-campista", "Zagueiro", "Goleiro"];
+            posicoes.forEach(pos => {
+                let btn = document.createElement("button");
+                btn.innerText = "⚽ " + pos;
+                btn.onclick = () => salvarPosicao(pos);
+                choicesContainer.appendChild(btn);
+            });
+        }
+        else if (currentStep === "criar_clube") {
+            storyBox.innerHTML = `Uma excelente escolha de posição! Agora, escolha o clube modesto onde você vai iniciar sua carreira profissional:`;
+            
+            const clubes = ["Riachuelo FC", "Esportivo Operário", "Grêmio Municipal", "Vila Nova United"];
+            clubes.forEach(clube => {
+                let btn = document.createElement("button");
+                btn.innerText = "🛡️ " + clube;
+                btn.onclick = () => salvarClube(clube);
+                choicesContainer.appendChild(btn);
+            });
+        }
+        else if (currentStep === "partida_1") {
+            statsPanel.style.display = "grid";
+            updateStats();
+            storyBox.innerHTML = `<strong>Estreia no Campeonato!</strong> O jogo está empatado em 0x0 aos 42 minutos do segundo tempo. Você recebe a bola na intermediária com espaço. O que você faz?`;
+            
+            let opcoes = [
+                { texto: "A) Arriscar um chute forte de longa distância para surpreender o goleiro.", efeito: { attr: 5, tec: 2, torc: 8, prox: "fim_1a" } },
+                { texto: "B) Fazer um passe enfiado milimétrico para o seu companheiro livre na área.", efeito: { attr: 3, tec: 5, torc: 4, prox: "fim_1b" } },
+                { texto: "C) Proteger a bola, girar sobre o marcador e manter a posse com segurança.", efeito: { attr: 1, tec: 4, torc: -2, prox: "fim_1c" } }
+            ];
+
+            opcoes.forEach(op => {
+                let btn = document.createElement("button");
+                btn.innerText = op.texto;
+                btn.onclick = () => avancarRodada(op.efeito);
+                choicesContainer.appendChild(btn);
+            });
+        }
+        else if (currentStep.startsWith("fim_1")) {
+            let resultadoTexto = "";
+            if(currentStep === "fim_1a") {
+                resultadoTexto = "QUE GOLAÇO! Você acertou um chute indefensável no ângulo superior! A torcida vai à loucura e você decide a partida de estreia!";
+            } else if(currentStep === "fim_1b") {
+                resultadoTexto = "Belo passe! Seu companheiro recebeu livre e marcou o gol da vitória. O técnico te elogiou muito pela visão de jogo.";
+            } else {
+                resultadoTexto = "Você segurou bem a bola e garantiu o empate sem riscos desnecessários. O técnico aprovou sua maturidade tática.";
+            }
+
+            storyBox.innerHTML = `<strong>Fim de Jogo!</strong><br><br>${resultadoTexto}<br><br>Sua carreira profissional começou com o pé direito. Continue acompanhando atualizações futuras para mais desafios!`;
+            
+            let btn = document.createElement("button");
+            btn.innerText = "🔄 Reiniciar Carreira";
+            btn.onclick = () => reiniciar();
+            choicesContainer.appendChild(btn);
+        }
+    }
+
+    function salvarNome() {
+        const val = document.getElementById("input-nome").value.trim();
+        if(val) {
+            player.name = val;
+            currentStep = "criar_posicao";
+            renderGame();
+        } else {
+            alert("Por favor, digite um nome válido!");
+        }
+    }
+
+    function salvarPosicao(pos) {
+        player.position = pos;
+        currentStep = "criar_clube";
+        renderGame();
+    }
+
+    function salvarClube(clube) {
+        player.clube = clube;
+        currentStep = "partida_1";
+        renderGame();
+    }
+
+    function avancarRodada(efeito) {
+        player.atributo += efeito.attr;
+        player.tecnico += efeito.tec;
+        player.torcida += efeito.torc;
+        currentStep = efeito.prox;
+        renderGame();
+    }
+
+    function reiniciar() {
+        player = { name: "", position: "", clube: "", atributo: 50, tecnico: 50, torcida: 50 };
+        currentStep = "criar_nome";
+        renderGame();
+    }
+
+    // Inicializar o jogo ao carregar a página
+    renderGame();
+</script>
+
+</body>
+  </html>
+  
